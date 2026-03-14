@@ -53,3 +53,20 @@ export const updatePerson = (updatedPerson: Person) => {
     savePeopleAction(people);
   }
 };
+
+export const deletePerson = (idToDelete: string) => {
+  const allPeople = getStoredPeople();
+
+  // 1. Фильтруем список, убирая удаляемого человека
+  const updatedPeople = allPeople
+    .filter((p) => p.id !== idToDelete)
+    .map((person) => ({
+      ...person,
+      // 2. Чистим связи: убираем ID удаленного из всех массивов родственников
+      parents: person.parents.filter((id) => id !== idToDelete),
+      children: person.children.filter((id) => id !== idToDelete),
+      spouses: person.spouses.filter((id) => id !== idToDelete),
+    }));
+
+  savePeopleAction(updatedPeople);
+};

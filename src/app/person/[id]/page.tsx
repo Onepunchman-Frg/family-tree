@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, ReactElement, use } from "react";
-import { getStoredPeople } from "@/utils/storage";
+import { useRouter } from "next/navigation";
+import { getStoredPeople, deletePerson } from "@/utils/storage";
 import { Person } from "@/types/person";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +13,7 @@ export default function PersonPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params); // В клиенте используем use() для развертки промиса
+  const router = useRouter(); // Добавляем роутер для редиректа
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +29,16 @@ export default function PersonPage({
 
   const getPerson = (pid: string) => people.find((p) => p.id === pid);
 
+  const handleDelete = () => {
+    if (
+      window.confirm(
+        "Вы уверены, что хотите удалить этого человека и все связи с ним?",
+      )
+    ) {
+      deletePerson(id);
+      router.push("/people"); // Уходим на список после удаления
+    }
+  };
   return (
     <main className="max-w-4xl mx-auto p-8">
       <Link href="/people" className="text-blue-500 mb-6 inline-block">
@@ -44,6 +56,13 @@ export default function PersonPage({
         >
           ⚙️ Редактировать
         </Link>
+
+        <button
+          onClick={handleDelete}
+          className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-red-100"
+        >
+          🗑️ Удалить
+        </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <section>
