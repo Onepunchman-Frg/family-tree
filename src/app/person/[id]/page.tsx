@@ -1,112 +1,83 @@
-import { MOCK_PEOPLE } from "@/constants/mockData";
+"use client";
+
+import { useEffect, useState, ReactElement, use } from "react";
+import { getStoredPeople } from "@/utils/storage";
+import { Person } from "@/types/person";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-// Функция-помощник остается прежней
-const getPersonById = (id: string) => MOCK_PEOPLE.find((p) => p.id === id);
-
-// 1. Добавляем async перед функцией
-export default async function PersonPage({
+export default function PersonPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // 2. Ожидаем (await), пока придут параметры
-  const { id } = await params;
+  const { id } = use(params); // В клиенте используем use() для развертки промиса
+  const [people, setPeople] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const person = getPersonById(id);
+  useEffect(() => {
+    setPeople(getStoredPeople());
+    setLoading(false);
+  }, []);
 
-  if (!person) {
-    notFound();
-  }
+  if (loading) return <div className="p-8">Загрузка...</div>;
 
-  // Получаем полные данные родственников
-  const parents = person.parents.map(getPersonById).filter(Boolean);
-  const children = person.children.map(getPersonById).filter(Boolean);
+  const person = people.find((p) => p.id === id);
+  if (!person) return notFound();
+
+  const getPerson = (pid: string) => people.find((p) => p.id === pid);
 
   return (
     <main className="max-w-4xl mx-auto p-8">
-      <Link
-        href="/people"
-        className="text-blue-500 hover:underline mb-6 inline-block"
-      >
-        ← Назад к списку
+      <Link href="/people" className="text-blue-500 mb-6 inline-block">
+        ← К списку
       </Link>
 
       <div className="bg-white border rounded-2xl p-8 shadow-sm">
-        <div className="flex items-center gap-6 mb-8">
-          <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center text-4xl font-bold text-blue-600">
-            {person.firstName[0]}
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold">
-              {person.firstName} {person.lastName}
-            </h1>
-            <p className="text-gray-500 italic">
-              Дата рождения: {person.birthDate}
-            </p>
-          </div>
-        </div>
+        <h1 className="text-4xl font-bold mb-4">
+          {person.firstName} {person.lastName} {person.patronymic}
+        </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div>
-            <h2 className="text-xl font-bold mb-4 border-b pb-2 text-gray-800">
-              Биография
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+          <section>
+            <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4">
+              Родственные связи
             </h2>
-            <p className="text-gray-700 leading-relaxed">
-              {person.description || "Информация не заполнена"}
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold mb-4 border-b pb-2 text-gray-800">
-              Семья
-            </h2>
-
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Родители
-                </h3>
-                <div className="flex flex-col gap-1">
-                  {parents.length > 0 ? (
-                    parents.map((p) => (
-                      <Link
-                        key={p?.id}
-                        href={`/person/${p?.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        {p?.firstName} {p?.lastName}
-                      </Link>
-                    ))
-                  ) : (
-                    <span className="text-sm text-gray-400">Нет данных</span>
-                  )}
-                </div>
+                <p className="text-sm text-gray-500">Родители:</p>
+                {person.parents.length > 0 ? (
+                  person.parents.map((pid) => (
+                    <Link
+                      key={pid}
+                      href={`/person/${pid}`}
+                      className="block text-blue-600"
+                    >
+                      {getPerson(pid)?.firstName} {getPerson(pid)?.lastName}
+                    </Link>
+                  ))
+                ) : (
+                  <p>Не указаны</p>
+                )}
               </div>
-
               <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Дети
-                </h3>
-                <div className="flex flex-col gap-1">
-                  {children.length > 0 ? (
-                    children.map((p) => (
-                      <Link
-                        key={p?.id}
-                        href={`/person/${p?.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        {p?.firstName} {p?.lastName}
-                      </Link>
-                    ))
-                  ) : (
-                    <span className="text-sm text-gray-400">Нет данных</span>
-                  )}
-                </div>
+                <p className="text-sm text-gray-500">Дети:</p>
+                {person.children.length > 0 ? (
+                  person.children.map((pid) => (
+                    <Link
+                      key={pid}
+                      href={`/person/${pid}`}
+                      className="block text-blue-600"
+                    >
+                      {getPerson(pid)?.firstName} {getPerson(pid)?.lastName}
+                    </Link>
+                  ))
+                ) : (
+                  <p>Нет детей</p>
+                )}
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </main>

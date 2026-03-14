@@ -13,7 +13,8 @@ export const PersonCard = ({ person }: Props) => {
           {person.firstName[0]}
         </div>
         <h3 className="font-bold text-lg">
-          {person.firstName} {person.lastName}
+          {person.lastName} <br />
+          {person.firstName} {person.patronymic}
         </h3>
         <p className="text-sm text-gray-500">{person.birthDate}</p>
       </div>

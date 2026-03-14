@@ -1,34 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { savePerson, generateId } from "@/utils/storage";
+import {
+  getStoredPeople,
+  addPersonWithRelations,
+  generateId,
+} from "@/utils/storage";
 import { Gender, Person } from "@/types/person";
 import Link from "next/link";
-
 export default function CreatePersonPage() {
   const router = useRouter();
+  const [existingPeople, setExistingPeople] = useState<Person[]>([]);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    patronymic: "",
     birthDate: "",
     gender: "male" as Gender,
     description: "",
+    parents: [] as string[], // Храним ID выбранных родителей
   });
+
+  useEffect(() => {
+    setExistingPeople(getStoredPeople());
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     const newPerson: Person = {
       ...formData,
-      id: generateId(), // Генерирует уникальный ID типа "123e4567-e89b..."
-      parents: [],
+      id: generateId(),
       children: [],
       spouses: [],
     };
-
-    savePerson(newPerson);
-    router.push("/people"); // Перенаправляем на список после создания
+    addPersonWithRelations(newPerson);
+    router.push("/people");
   };
 
   return (
@@ -57,6 +65,17 @@ export default function CreatePersonPage() {
             className="w-full p-2 border rounded"
             onChange={(e) =>
               setFormData({ ...formData, lastName: e.target.value })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Отчество</label>
+          <input
+            className="w-full p-2 border rounded"
+            value={formData.patronymic}
+            onChange={(e) =>
+              setFormData({ ...formData, patronymic: e.target.value })
             }
           />
         </div>
@@ -97,6 +116,33 @@ export default function CreatePersonPage() {
               setFormData({ ...formData, description: e.target.value })
             }
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Выберите родителей (макс. 2)
+          </label>
+          <select
+            multiple
+            className="w-full p-2 border rounded h-32"
+            value={formData.parents}
+            onChange={(e) => {
+              const values = Array.from(
+                e.target.selectedOptions,
+                (option) => option.value,
+              );
+              setFormData({ ...formData, parents: values });
+            }}
+          >
+            {existingPeople.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.firstName} {p.lastName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">
+            Зажми Ctrl (или Cmd), чтобы выбрать двоих
+          </p>
         </div>
 
         <div className="flex gap-4 pt-4">

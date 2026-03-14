@@ -4,6 +4,7 @@ export interface Person {
   id: string;
   firstName: string;
   lastName: string;
+  patronymic?: string;
   photoUrl?: string;
   birthDate: string;
   gender: Gender;
