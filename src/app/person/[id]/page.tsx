@@ -38,6 +38,13 @@ export default function PersonPage({
           {person.firstName} {person.lastName} {person.patronymic}
         </h1>
 
+        <Link
+          href={`/edit/${person.id}`}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition"
+        >
+          ⚙️ Редактировать
+        </Link>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <section>
             <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4">

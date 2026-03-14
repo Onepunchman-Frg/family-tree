@@ -43,3 +43,13 @@ export const addPersonWithRelations = (newPerson: Person) => {
 
   savePeopleAction(allPeople);
 };
+
+export const updatePerson = (updatedPerson: Person) => {
+  const people = getStoredPeople();
+  const index = people.findIndex((p) => p.id === updatedPerson.id);
+
+  if (index !== -1) {
+    people[index] = updatedPerson;
+    savePeopleAction(people);
+  }
+};
