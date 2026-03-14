@@ -15,7 +15,13 @@ export default function PeoplePage() {
   );
 
   useEffect(() => {
-    setPeople(getStoredPeople());
+    // Создаем асинхронную функцию внутри useEffect
+    const loadPeople = async () => {
+      const data = await getStoredPeople();
+      setPeople(data);
+    };
+
+    loadPeople(); // Вызываем её
   }, []);
 
   // ЛОГИКА ФИЛЬТРАЦИИ: Создаем производный массив

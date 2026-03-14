@@ -18,8 +18,13 @@ export default function PersonPage({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setPeople(getStoredPeople());
-    setLoading(false);
+    const loadData = async () => {
+      const data = await getStoredPeople();
+      setPeople(data);
+      setLoading(false);
+    };
+
+    loadData();
   }, []);
 
   if (loading) return <div className="p-8">Загрузка...</div>;
@@ -29,14 +34,19 @@ export default function PersonPage({
 
   const getPerson = (pid: string) => people.find((p) => p.id === pid);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (
       window.confirm(
         "Вы уверены, что хотите удалить этого человека и все связи с ним?",
       )
     ) {
-      deletePerson(id);
-      router.push("/people"); // Уходим на список после удаления
+      try {
+        await deletePerson(id); // Ждем удаления из БД
+        router.push("/people");
+      } catch (error) {
+        console.error("Ошибка при удалении:", error);
+        alert("Не удалось удалить.");
+      }
     }
   };
   return (

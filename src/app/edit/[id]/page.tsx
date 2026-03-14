@@ -18,22 +18,31 @@ export default function EditPersonPage({
   const [existingPeople, setExistingPeople] = useState<Person[]>([]);
 
   useEffect(() => {
-    const people = getStoredPeople();
-    setExistingPeople(people);
+    const loadData = async () => {
+      const people = await getStoredPeople();
+      setExistingPeople(people);
 
-    const personToEdit = people.find((p) => p.id === id);
-    if (personToEdit) {
-      setFormData(personToEdit);
-    } else {
-      router.push("/people");
-    }
+      const personToEdit = people.find((p) => p.id === id);
+      if (personToEdit) {
+        setFormData(personToEdit);
+      } else {
+        router.push("/people");
+      }
+    };
+
+    loadData();
   }, [id, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      updatePerson(formData);
-      router.push(`/person/${id}`);
+      try {
+        await updatePerson(formData); // Ждем обновления в БД
+        router.push(`/person/${id}`);
+      } catch (error) {
+        console.error("Ошибка при обновлении:", error);
+        alert("Не удалось обновить.");
+      }
     }
   };
 

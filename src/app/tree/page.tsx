@@ -10,34 +10,22 @@ export default function TreePage() {
   const [generations, setGenerations] = useState<Record<number, Person[]>>({});
 
   useEffect(() => {
-    const allPeople = getStoredPeople();
-    setPeople(allPeople);
+    const loadData = async () => {
+      const allPeople = await getStoredPeople();
+      setPeople(allPeople);
 
-    // Алгоритм распределения по поколениям
-    const genMap: Record<number, Person[]> = {};
+      const genMap: Record<number, Person[]> = {};
 
-    // Помогательная функция для определения уровня человека
-    const getLevel = (person: Person, currentLevel: number = 0): number => {
-      // Если у человека нет родителей в базе, он на текущем уровне
-      if (!person.parents || person.parents.length === 0) {
-        return currentLevel;
-      }
+      allPeople.forEach((p) => {
+        const level = !p.parents || p.parents.length === 0 ? 0 : 1;
+        if (!genMap[level]) genMap[level] = [];
+        genMap[level].push(p);
+      });
 
-      // Иначе его уровень — это уровень его самого "высокого" родителя + 1
-      // Это упрощенная логика, чтобы не уйти в бесконечный цикл
-      return currentLevel + 1;
+      setGenerations(genMap);
     };
 
-    allPeople.forEach((p) => {
-      // Для MVP: если нет родителей — уровень 0, если есть — уровень 1
-      // В будущем мы сделаем рекурсию для глубоких деревьев
-      const level = p.parents.length === 0 ? 0 : 1;
-
-      if (!genMap[level]) genMap[level] = [];
-      genMap[level].push(p);
-    });
-
-    setGenerations(genMap);
+    loadData();
   }, []);
 
   return (

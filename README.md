@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Family Tree App
 
-## Getting Started
+Современное веб-приложение для создания и визуализации генеалогического древа. Проект позволяет хранить историю семьи, отслеживать родственные связи и визуализировать поколения в удобном интерфейсе.
 
-First, run the development server:
+## 🚀 Основные возможности
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Полный CRUD:** Создание, чтение, редактирование и удаление профилей родственников.
+- **Умные связи:** Автоматическое обновление двусторонних связей (указываете отца — у отца автоматически появляется ребенок).
+- **Визуализация:** Отображение родственников по поколениям.
+- **Интерактивный поиск:** Мгновенная фильтрация по ФИО и полу.
+- **LocalStorage:** Данные сохраняются в браузере и доступны после перезагрузки страницы.
+- **Responsive Design:** Полная адаптивность для мобильных устройств и десктопов.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Стек технологий
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Icons:** Emoji & Heroicons
+- **State Management:** React Hooks (useState, useEffect, use)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Установка и запуск
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Клонируйте репозиторий:
+   ```bash
+    git clone [https://github.com/Onepunchman-Frg/family-tree](https://github.com/Onepunchman-Frg/family-tree)
+   ```
+2. Установите зависимости:
+   ```bash
+   npm install
+   ```
+3. Запустите сервер для разработки:
+   ```bash
+   npm run dev
+   ```
+4. Откройте [http://localhost:3000](http://localhost:3000) в браузере.

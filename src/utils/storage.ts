@@ -1,72 +1,47 @@
+import { supabase } from "./supabase";
 import { Person } from "@/types/person";
 
-const STORAGE_KEY = "family_tree_data";
+// 1. Получить всех людей
+export const getStoredPeople = async (): Promise<Person[]> => {
+  const { data, error } = await supabase
+    .from("people")
+    .select("*")
+    .order("created_at", { ascending: true });
 
-export const generateId = (): string => {
-  if (typeof window !== "undefined" && window.crypto?.randomUUID)
-    return window.crypto.randomUUID();
-  return Math.random().toString(36).substring(2, 15);
-};
-
-export const getStoredPeople = (): Person[] => {
-  if (typeof window === "undefined") return [];
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
-export const savePeopleAction = (people: Person[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(people));
-};
-
-// Функция для добавления человека с автоматическим обновлением связей
-export const addPersonWithRelations = (newPerson: Person) => {
-  const allPeople = getStoredPeople();
-
-  // 1. Добавляем самого человека
-  allPeople.push(newPerson);
-
-  // 2. Обновляем родителей: добавляем им нового ребенка
-  newPerson.parents.forEach((parentId) => {
-    const parent = allPeople.find((p) => p.id === parentId);
-    if (parent && !parent.children.includes(newPerson.id)) {
-      parent.children.push(newPerson.id);
-    }
-  });
-
-  // 3. Обновляем супругов: добавляем им связь
-  newPerson.spouses.forEach((spouseId) => {
-    const spouse = allPeople.find((p) => p.id === spouseId);
-    if (spouse && !spouse.spouses.includes(newPerson.id)) {
-      spouse.spouses.push(newPerson.id);
-    }
-  });
-
-  savePeopleAction(allPeople);
-};
-
-export const updatePerson = (updatedPerson: Person) => {
-  const people = getStoredPeople();
-  const index = people.findIndex((p) => p.id === updatedPerson.id);
-
-  if (index !== -1) {
-    people[index] = updatedPerson;
-    savePeopleAction(people);
+  if (error) {
+    console.error("Ошибка при загрузке:", error);
+    return [];
   }
+
+  return data as Person[];
 };
 
-export const deletePerson = (idToDelete: string) => {
-  const allPeople = getStoredPeople();
+// 2. Добавить человека
+// Используем Omit, чтобы сказать TypeScript: "мы передаем всё, кроме id, его сделает база"
+export const addPersonWithRelations = async (newPerson: Omit<Person, "id">) => {
+  const { data, error } = await supabase
+    .from("people")
+    .insert([newPerson])
+    .select();
 
-  // 1. Фильтруем список, убирая удаляемого человека
-  const updatedPeople = allPeople
-    .filter((p) => p.id !== idToDelete)
-    .map((person) => ({
-      ...person,
-      // 2. Чистим связи: убираем ID удаленного из всех массивов родственников
-      parents: person.parents.filter((id) => id !== idToDelete),
-      children: person.children.filter((id) => id !== idToDelete),
-      spouses: person.spouses.filter((id) => id !== idToDelete),
-    }));
+  if (error) throw error;
 
-  savePeopleAction(updatedPeople);
+  return data[0];
+};
+
+// 3. Обновить человека
+export const updatePerson = async (updatedPerson: Person) => {
+  const { error } = await supabase
+    .from("people")
+    .update(updatedPerson)
+    .eq("id", updatedPerson.id);
+
+  if (error) throw error;
+};
+
+// 4. Удалить человека
+export const deletePerson = async (id: string) => {
+  const { error } = await supabase.from("people").delete().eq("id", id);
+
+  if (error) throw error;
 };
