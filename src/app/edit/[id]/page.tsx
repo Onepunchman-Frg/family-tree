@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getStoredPeople, updatePerson } from "@/utils/storage";
 import { Gender, Person } from "@/types/person";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EditPersonPage({
   params,
@@ -13,9 +14,20 @@ export default function EditPersonPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { user, role, loading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState<Person | null>(null);
   const [existingPeople, setExistingPeople] = useState<Person[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || role === "guest") {
+        alert("У вас нет прав для редактирования данных.");
+        router.push(`/person/${id}`);
+      }
+    }
+  }, [user, role, authLoading, id, router]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -25,29 +37,34 @@ export default function EditPersonPage({
       const personToEdit = people.find((p) => p.id === id);
       if (personToEdit) {
         setFormData(personToEdit);
-      } else {
-        router.push("/people");
       }
     };
 
     loadData();
-  }, [id, router]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData) {
-      try {
-        await updatePerson(formData); // Ждем обновления в БД
-        router.push(`/person/${id}`);
-      } catch (error) {
-        console.error("Ошибка при обновлении:", error);
-        alert("Не удалось обновить.");
-      }
+    if (!formData) return;
+
+    setIsSaving(true);
+    try {
+      await updatePerson(formData);
+      router.push(`/person/${id}`);
+    } catch (error) {
+      console.error("Ошибка обновления:", error);
+      alert("Ошибка при сохранении");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   if (!formData)
     return <div className="p-8 text-center">Загрузка данных...</div>;
+
+  if (authLoading || !formData)
+    return <div className="p-8 text-center">Загрузка...</div>;
+  if (role === "guest") return null;
 
   return (
     <main className="max-w-2xl mx-auto p-8">
@@ -184,17 +201,17 @@ export default function EditPersonPage({
         <div className="flex gap-4 pt-4">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+            disabled={isSaving}
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:bg-blue-300 transition"
           >
-            Сохранить изменения
+            {isSaving ? "Сохранение..." : "Сохранить изменения"}
           </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
+          <Link
+            href={`/person/${id}`}
             className="px-6 py-3 border rounded-lg hover:bg-gray-50 transition"
           >
             Отмена
-          </button>
+          </Link>
         </div>
       </form>
     </main>

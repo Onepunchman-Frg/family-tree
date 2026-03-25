@@ -6,9 +6,12 @@ import { useRouter } from "next/navigation";
 import { getStoredPeople, addPersonWithRelations } from "@/utils/storage";
 import { Gender, Person } from "@/types/person";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CreatePersonPage() {
   const router = useRouter();
+  const { user, role, loading: authLoading } = useAuth();
+
   const [existingPeople, setExistingPeople] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Индикатор загрузки
 
@@ -21,6 +24,17 @@ export default function CreatePersonPage() {
     description: "",
     parents: [] as string[],
   });
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || role === "guest") {
+        alert(
+          "У вас нет прав для создания профилей. Пожалуйста, дождитесь одобрения администратора.",
+        );
+        router.push("/people");
+      }
+    }
+  }, [user, role, authLoading, router]);
 
   useEffect(() => {
     // Правильный способ вызвать async-функцию внутри useEffect
@@ -55,6 +69,10 @@ export default function CreatePersonPage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading)
+    return <div className="p-8 text-center">Проверка прав доступа...</div>;
+  if (!user || role === "guest") return null; // Блокируем рендер
 
   return (
     <main className="max-w-2xl mx-auto p-8">
