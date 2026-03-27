@@ -8,8 +8,18 @@ export const Navbar = () => {
   const { user, role } = useAuth();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/"; // Полная перезагрузка для сброса стейта
+    try {
+      // 1. Ждем корректного выхода на стороне сервера Supabase
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Ошибка при выходе в Supabase:", error);
+    } finally {
+      // 2. В любом случае принудительно чистим кэш браузера
+      localStorage.clear();
+      sessionStorage.clear();
+      // 3. Отправляем на страницу логина
+      window.location.href = "/login";
+    }
   };
 
   return (
