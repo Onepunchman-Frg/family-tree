@@ -56,9 +56,47 @@ export default function PersonPage({
       </Link>
 
       <div className="bg-white border rounded-2xl p-8 shadow-sm">
-        <h1 className="text-4xl font-bold mb-4">
-          {person.firstName} {person.lastName} {person.patronymic}
-        </h1>
+        <div className="w-48 h-48 flex-shrink-0 bg-gray-100 rounded-2xl overflow-hidden border-4 border-white shadow-lg flex items-center justify-center text-6xl">
+          {person.photoUrl ? (
+            <img
+              src={person.photoUrl}
+              alt="Аватар"
+              className="w-full h-full object-cover"
+            />
+          ) : person.gender === "male" ? (
+            "👨"
+          ) : (
+            "👩"
+          )}
+        </div>
+
+        {/* ДАННЫЕ ПРОФИЛЯ */}
+        <div className="flex-1">
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-4xl font-bold">
+              {person.lastName} {person.firstName} {person.patronymic}
+            </h1>
+            {/* Тут твои кнопки редактировать/удалить */}
+          </div>
+
+          <div className="text-gray-600 mb-6">
+            <p>
+              <strong>Дата рождения:</strong>{" "}
+              {new Date(person.birthDate).toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Пол:</strong>{" "}
+              {person.gender === "male" ? "Мужской" : "Женский"}
+            </p>
+          </div>
+
+          {person.description && (
+            <div className="bg-blue-50 p-4 rounded-xl text-blue-900">
+              <strong>Биография:</strong> <br />
+              {person.description}
+            </div>
+          )}
+        </div>
 
         <Link
           href={`/edit/${person.id}`}
@@ -113,6 +151,30 @@ export default function PersonPage({
                 )}
               </div>
             </div>
+
+            {/* БЛОК СУПРУГОВ */}
+            {person.spouses && person.spouses.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4 border-b pb-2">
+                  Супруги
+                </h2>
+                <div className="flex gap-4 flex-wrap">
+                  {person.spouses.map((spouseId) => {
+                    const spouse = people.find((p) => p.id === spouseId);
+                    if (!spouse) return null;
+                    return (
+                      <Link
+                        key={spouse.id}
+                        href={`/person/${spouse.id}`}
+                        className="bg-pink-50 text-pink-700 px-4 py-2 rounded-lg hover:bg-pink-100 transition shadow-sm"
+                      >
+                        💍 {spouse.firstName} {spouse.lastName}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         </div>
       </div>

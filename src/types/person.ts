@@ -5,7 +5,6 @@ export interface Person {
   firstName: string;
   lastName: string;
   patronymic?: string;
-  photoUrl?: string;
   birthDate: string;
   gender: Gender;
   description?: string;
@@ -13,4 +12,5 @@ export interface Person {
   parents: string[];
   children: string[];
   spouses: string[];
+  photoUrl?: string; // НОВОЕ ПОЛЕ
 }

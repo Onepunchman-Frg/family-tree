@@ -19,6 +19,7 @@ export default function EditPersonPage({
   const [formData, setFormData] = useState<Person | null>(null);
   const [existingPeople, setExistingPeople] = useState<Person[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -153,6 +154,19 @@ export default function EditPersonPage({
           </div>
         </div>
 
+        {/* ФОТОГРАФИЯ */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-600">
+            Фотография
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+            className="w-full p-2 border rounded outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+
         {/* ВЫБОР РОДИТЕЛЕЙ */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-600">
@@ -180,6 +194,34 @@ export default function EditPersonPage({
           </select>
           <p className="text-xs text-gray-400 mt-1">
             Удерживайте Ctrl/Cmd для выбора двоих
+          </p>
+        </div>
+
+        {/* ВЫБОР СУПРУГА/СУПРУГИ */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-600">
+            Супруг / Супруга
+          </label>
+          <select
+            multiple
+            className="w-full p-2 border rounded h-24 outline-none focus:ring-2 focus:ring-blue-500"
+            value={formData.spouses}
+            onChange={(e) => {
+              const values = Array.from(
+                e.target.selectedOptions,
+                (option) => option.value,
+              );
+              setFormData({ ...formData, spouses: values });
+            }}
+          >
+            {existingPeople.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.lastName} {p.firstName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">
+            Зажмите Ctrl/Cmd для выбора (если было несколько браков)
           </p>
         </div>
 

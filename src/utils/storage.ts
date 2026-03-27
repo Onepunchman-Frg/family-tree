@@ -45,3 +45,25 @@ export const deletePerson = async (id: string) => {
 
   if (error) throw error;
 };
+
+// 5. Загрузить фото и получить URL
+export const uploadPhoto = async (file: File): Promise<string | null> => {
+  try {
+    // Генерируем уникальное имя файла, чтобы они не перезаписали друг друга
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    // Получаем публичную ссылку на загруженный файл
+    const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+    return data.publicUrl;
+  } catch (error) {
+    console.error("Ошибка загрузки фото:", error);
+    return null;
+  }
+};

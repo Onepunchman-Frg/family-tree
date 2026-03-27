@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 // Больше не импортируем generateId!
-import { getStoredPeople, addPersonWithRelations } from "@/utils/storage";
+import {
+  getStoredPeople,
+  addPersonWithRelations,
+  uploadPhoto,
+} from "@/utils/storage";
 import { Gender, Person } from "@/types/person";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -14,6 +18,7 @@ export default function CreatePersonPage() {
 
   const [existingPeople, setExistingPeople] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Индикатор загрузки
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -23,6 +28,7 @@ export default function CreatePersonPage() {
     gender: "male" as Gender,
     description: "",
     parents: [] as string[],
+    spouses: [] as string[],
   });
 
   useEffect(() => {
@@ -50,21 +56,27 @@ export default function CreatePersonPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true); // Включаем кнопку "Загрузка..."
-
     try {
-      // Формируем объект БЕЗ id (база сама его присвоит)
+      let uploadedUrl: string | null = null;
+
+      // Если пользователь выбрал фото, сначала грузим его в облако
+      if (photoFile) {
+        uploadedUrl = await uploadPhoto(photoFile);
+      }
+
       const newPerson = {
         ...formData,
+        birthDate: formData.birthDate || "",
+        photoUrl: uploadedUrl || undefined, // Добавляем ссылку в профиль
         children: [],
         spouses: [],
       };
 
-      // Ждём, пока данные сохранятся в Supabase
       await addPersonWithRelations(newPerson);
       router.push("/people");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка при сохранении:", error);
-      alert("Не удалось сохранить данные. Проверьте консоль.");
+      alert(`Ошибка БД: ${error.message || "Неизвестная ошибка"}`);
     } finally {
       setIsLoading(false);
     }
@@ -161,6 +173,19 @@ export default function CreatePersonPage() {
           </div>
         </div>
 
+        {/* ФОТОГРАФИЯ */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-600">
+            Фотография
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+            className="w-full p-2 border rounded outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+
         {/* ВЫБОР РОДИТЕЛЕЙ */}
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-600">
@@ -186,6 +211,34 @@ export default function CreatePersonPage() {
           </select>
           <p className="text-xs text-gray-400 mt-1">
             Зажмите Ctrl (или Cmd), чтобы выбрать двоих
+          </p>
+        </div>
+
+        {/* ВЫБОР СУПРУГА/СУПРУГИ */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-600">
+            Супруг / Супруга
+          </label>
+          <select
+            multiple
+            className="w-full p-2 border rounded h-24 outline-none focus:ring-2 focus:ring-blue-500"
+            value={formData.spouses}
+            onChange={(e) => {
+              const values = Array.from(
+                e.target.selectedOptions,
+                (option) => option.value,
+              );
+              setFormData({ ...formData, spouses: values });
+            }}
+          >
+            {existingPeople.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.lastName} {p.firstName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">
+            Зажмите Ctrl/Cmd для выбора (если было несколько браков)
           </p>
         </div>
 
