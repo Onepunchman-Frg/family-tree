@@ -14,11 +14,24 @@ export const Navbar = () => {
     } catch (error) {
       console.error("Ошибка при выходе в Supabase:", error);
     } finally {
-      // 2. В любом случае принудительно чистим кэш браузера
-      localStorage.clear();
-      sessionStorage.clear();
-      // 3. Отправляем на страницу логина
-      window.location.href = "/login";
+      // 2. Жестко чистим браузер (выполнится в любом случае!)
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // На всякий случай точечно убиваем куки Supabase, если они есть
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(
+              /=.*/,
+              "=;expires=" + new Date().toUTCString() + ";path=/",
+            );
+        });
+      }
+
+      // 3. Используем replace вместо href, чтобы стереть историю перехода
+      window.location.replace("/");
     }
   };
 

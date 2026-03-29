@@ -16,9 +16,19 @@ export const PersonCard = ({ person }: Props) => {
     <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3 mb-3">
         <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center text-xl`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden shrink-0 shadow-sm border-2 border-white ${person.gender === "male" ? "bg-blue-50" : "bg-pink-50"}`}
         >
-          <img src={person.photoUrl} />
+          {person.photoUrl ? (
+            <img
+              src={person.photoUrl}
+              alt={`${person.firstName} ${person.lastName}`}
+              className="w-full h-full object-cover"
+            />
+          ) : person.gender === "male" ? (
+            "👨"
+          ) : (
+            "👩"
+          )}
         </div>
         <div>
           <h3 className="font-bold text-gray-900 leading-tight">
