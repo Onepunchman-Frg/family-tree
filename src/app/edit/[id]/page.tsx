@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { getStoredPeople, updatePerson } from "@/utils/storage";
+import { getStoredPeople, updatePerson, uploadPhoto } from "@/utils/storage";
 import { Gender, Person } from "@/types/person";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
@@ -50,11 +50,28 @@ export default function EditPersonPage({
 
     setIsSaving(true);
     try {
-      await updatePerson(formData);
+      // По умолчанию оставляем СТАРУЮ ссылку на фото
+      let finalPhotoUrl = formData.photoUrl;
+
+      // Если пользователь выбрал НОВЫЙ файл, загружаем его
+      if (photoFile) {
+        const uploadedUrl = await uploadPhoto(photoFile);
+        if (uploadedUrl) {
+          finalPhotoUrl = uploadedUrl; // Заменяем старую ссылку на новую
+        }
+      }
+
+      // Собираем финальный объект для базы
+      const updatedPerson = {
+        ...formData,
+        photoUrl: finalPhotoUrl,
+      };
+
+      await updatePerson(updatedPerson); // Отправляем в базу
       router.push(`/person/${id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка обновления:", error);
-      alert("Ошибка при сохранении");
+      alert(`Ошибка при сохранении: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -159,6 +176,16 @@ export default function EditPersonPage({
           <label className="block text-sm font-medium mb-1 text-gray-600">
             Фотография
           </label>
+          {formData.photoUrl && !photoFile && (
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Текущее фото:</p>
+              <img
+                src={formData.photoUrl}
+                alt="Current avatar"
+                className="w-16 h-16 rounded-full object-cover border"
+              />
+            </div>
+          )}
           <input
             type="file"
             accept="image/*"
