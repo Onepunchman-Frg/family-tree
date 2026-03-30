@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { getStoredPeople } from "@/utils/storage";
 import { Person } from "@/types/person";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TreePage() {
   const [people, setPeople] = useState<Person[]>([]);
   const [generations, setGenerations] = useState<Record<number, Person[]>>({});
+  const { role } = useAuth();
+  const isGuest = role === "guest" || !role;
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,23 +58,41 @@ export default function TreePage() {
                   </h2>
                   <div className="flex flex-wrap justify-center gap-6">
                     {generations[Number(level)].map((person) => (
-                      <Link
-                        key={person.id}
-                        href={`/person/${person.id}`}
-                        className="group relative"
-                      >
+                      <div key={person.id} className="group relative">
                         <div className="bg-white border-2 border-white shadow-md rounded-xl p-4 w-48 text-center group-hover:border-blue-500 transition-all">
                           <div className="w-12 h-12 bg-blue-100 rounded-full mx-auto mb-3 flex items-center justify-center text-blue-600 font-bold">
-                            {person.firstName[0]}
+                            {person.photoUrl ? (
+                              <img
+                                src={person.photoUrl}
+                                alt="Аватар"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : person.gender === "male" ? (
+                              "👨"
+                            ) : (
+                              "👩"
+                            )}
                           </div>
                           <p className="font-bold text-gray-800 truncate">
                             {person.firstName} {person.lastName}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            {person.birthDate.split("-")[0]}
-                          </p>
+
+                          {!isGuest && (
+                            <p className="text-xs text-gray-500">
+                              {person.birthDate.split("-")[0]}
+                            </p>
+                          )}
+
+                          {!isGuest && (
+                            <Link
+                              href={`/person/${person.id}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Подробнее
+                            </Link>
+                          )}
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
                   {/* Визуальный разделитель (линия) между поколениями */}
